@@ -38,16 +38,16 @@ class StudentFlowSimulator:
         self.total_graduated = 0
         self.total_dropped = 0
         
+        # Nuevas estadísticas para repetidores
+        self.repeaters_per_year = [0] * self.params['total_years']
+        self.new_students_per_year = [0] * self.params['total_years']
+        
         self.history = {
             'year': [],
-            'year1': [],
-            'year2': [],
-            'year3': [],
-            'year4': [],
-            'year5': [],
-            'graduated': [],
-            'dropped': [],
-            'total': []
+            'year1': [], 'year2': [], 'year3': [], 'year4': [], 'year5': [],
+            'graduated': [], 'dropped': [], 'total': [],
+            'repeaters1': [], 'repeaters2': [], 'repeaters3': [], 'repeaters4': [], 'repeaters5': [],
+            'new_students1': [], 'new_students2': [], 'new_students3': [], 'new_students4': [], 'new_students5': []
         }
         
     def create_widgets(self):
@@ -99,10 +99,10 @@ class StudentFlowSimulator:
         flow_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         self.create_flow_diagram(flow_frame)
         
-        # Gráfico de evolución
-        graph_frame = tk.Frame(main_frame, bg="white", relief=tk.RIDGE, bd=2)
-        graph_frame.pack(fill=tk.BOTH, expand=True, pady=10)
-        self.create_evolution_graph(graph_frame)
+        # Gráficos (evolución y pastel)
+        graphs_frame = tk.Frame(main_frame, bg="#f0f4f8")
+        graphs_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+        self.create_graphs_panel(graphs_frame)
         
         # Tabla de historial
         history_frame = tk.Frame(main_frame, bg="white", relief=tk.RIDGE, bd=2)
@@ -193,7 +193,7 @@ class StudentFlowSimulator:
         dropped_frame = tk.Frame(parent, bg="#ef4444", relief=tk.FLAT, bd=0)
         dropped_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
         
-        tk.Label(dropped_frame, text="⚠️ Renunciados6", bg="#ef4444", fg="white", 
+        tk.Label(dropped_frame, text="⚠️ Abandonos", bg="#ef4444", fg="white", 
                 font=("Arial", 13, "bold")).pack(anchor=tk.W, padx=20, pady=(15, 5))
         
         self.dropped_value = tk.Label(dropped_frame, text="0", bg="#ef4444", fg="white", 
@@ -224,25 +224,60 @@ class StudentFlowSimulator:
         container.pack(fill=tk.X)
         
         self.year_cards = []
+        self.repeater_cards = []
+        self.new_student_cards = []
         colors = ["#06b6d4", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"]
         
         for i in range(self.params['total_years']):
-            frame = tk.Frame(container, bg=colors[i], relief=tk.FLAT, bd=0)
-            frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
+            # Frame principal para cada año
+            year_main_frame = tk.Frame(container, bg="#f0f4f8")
+            year_main_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
             
-            title = tk.Label(frame, text=f"📖 Año {i+1}", bg=colors[i], fg="white", 
-                           font=("Arial", 12, "bold"))
-            title.pack(anchor=tk.W, padx=15, pady=(12, 5))
+            # Tarjeta principal del año
+            main_frame = tk.Frame(year_main_frame, bg=colors[i], relief=tk.FLAT, bd=0)
+            main_frame.pack(fill=tk.X, pady=2)
             
-            value = tk.Label(frame, text="0", bg=colors[i], fg="white", 
-                           font=("Arial", 28, "bold"))
-            value.pack(anchor=tk.W, padx=15)
+            title = tk.Label(main_frame, text=f"📖 Año {i+1}", bg=colors[i], fg="white", 
+                           font=("Arial", 11, "bold"))
+            title.pack(anchor=tk.W, padx=10, pady=(8, 2))
             
-            detail = tk.Label(frame, text="estudiantes", bg=colors[i], fg="white", 
-                            font=("Arial", 9))
-            detail.pack(anchor=tk.W, padx=15, pady=(0, 12))
+            value = tk.Label(main_frame, text="0", bg=colors[i], fg="white", 
+                           font=("Arial", 24, "bold"))
+            value.pack(anchor=tk.W, padx=10)
+            
+            detail = tk.Label(main_frame, text="estudiantes totales", bg=colors[i], fg="white", 
+                            font=("Arial", 8))
+            detail.pack(anchor=tk.W, padx=10, pady=(0, 8))
             
             self.year_cards.append(value)
+            
+            # Tarjeta de repetidores
+            repeater_frame = tk.Frame(year_main_frame, bg="#f59e0b", relief=tk.FLAT, bd=0)
+            repeater_frame.pack(fill=tk.X, pady=1)
+            
+            repeater_title = tk.Label(repeater_frame, text="🔄 Repetidores", bg="#f59e0b", fg="white", 
+                                    font=("Arial", 9, "bold"))
+            repeater_title.pack(anchor=tk.W, padx=10, pady=(4, 1))
+            
+            repeater_value = tk.Label(repeater_frame, text="0", bg="#f59e0b", fg="white", 
+                                    font=("Arial", 16, "bold"))
+            repeater_value.pack(anchor=tk.W, padx=10)
+            
+            self.repeater_cards.append(repeater_value)
+            
+            # Tarjeta de estudiantes nuevos
+            new_frame = tk.Frame(year_main_frame, bg="#10b981", relief=tk.FLAT, bd=0)
+            new_frame.pack(fill=tk.X, pady=1)
+            
+            new_title = tk.Label(new_frame, text="🆕 Nuevos", bg="#10b981", fg="white", 
+                               font=("Arial", 9, "bold"))
+            new_title.pack(anchor=tk.W, padx=10, pady=(4, 1))
+            
+            new_value = tk.Label(new_frame, text="0", bg="#10b981", fg="white", 
+                               font=("Arial", 16, "bold"))
+            new_value.pack(anchor=tk.W, padx=10)
+            
+            self.new_student_cards.append(new_value)
             
     def create_config_panel(self):
         title = tk.Label(self.config_frame, text="⚙️ Configuración de Parámetros", 
@@ -297,14 +332,43 @@ class StudentFlowSimulator:
                                      highlightthickness=1, highlightbackground="#e2e8f0")
         self.flow_canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
         
-    def create_evolution_graph(self, parent):
-        title = tk.Label(parent, text="📈 Evolución de Estudiantes por Año", 
+    def create_graphs_panel(self, parent):
+        # Frame para contener ambos gráficos
+        graphs_container = tk.Frame(parent, bg="white", relief=tk.RIDGE, bd=2)
+        graphs_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Título
+        title = tk.Label(graphs_container, text="📊 Análisis Gráfico", 
                         bg="white", fg="#1e293b", font=("Arial", 15, "bold"))
         title.pack(anchor=tk.W, padx=20, pady=(15, 10))
         
-        self.graph_canvas = tk.Canvas(parent, bg="#f8fafc", height=300, 
+        # Frame para los dos gráficos lado a lado
+        graphs_frame = tk.Frame(graphs_container, bg="white")
+        graphs_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
+        
+        # Gráfico de evolución (izquierda)
+        left_frame = tk.Frame(graphs_frame, bg="white")
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        
+        evolution_title = tk.Label(left_frame, text="📈 Evolución de Estudiantes por Año", 
+                                 bg="white", fg="#1e293b", font=("Arial", 12, "bold"))
+        evolution_title.pack(anchor=tk.W, pady=(0, 10))
+        
+        self.graph_canvas = tk.Canvas(left_frame, bg="#f8fafc", height=300, 
                                       highlightthickness=1, highlightbackground="#e2e8f0")
-        self.graph_canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
+        self.graph_canvas.pack(fill=tk.BOTH, expand=True)
+        
+        # Gráfico de pastel (derecha)
+        right_frame = tk.Frame(graphs_frame, bg="white")
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(10, 0))
+        
+        pie_title = tk.Label(right_frame, text="🥧 Distribución Actual de Estudiantes", 
+                           bg="white", fg="#1e293b", font=("Arial", 12, "bold"))
+        pie_title.pack(anchor=tk.W, pady=(0, 10))
+        
+        self.pie_canvas = tk.Canvas(right_frame, bg="#f8fafc", height=300, 
+                                    highlightthickness=1, highlightbackground="#e2e8f0")
+        self.pie_canvas.pack(fill=tk.BOTH, expand=True)
         
     def create_history_table(self, parent):
         title = tk.Label(parent, text="📋 Historial Detallado por Año Académico", 
@@ -324,8 +388,8 @@ class StudentFlowSimulator:
         
         scrollbar.config(command=self.history_text.yview)
         
-        header = f"{'Año':>4} | {'1er':>5} | {'2do':>5} | {'3er':>5} | {'4to':>5} | {'5to':>5} | {'Grad':>6} | {'Desert':>7} | {'Total':>6}\n"
-        header += "-" * 70 + "\n"
+        header = f"{'Año':>4} | {'1er':>5} | {'2do':>5} | {'3er':>5} | {'4to':>5} | {'5to':>5} | {'Grad':>6} | {'Desert':>7} | {'Total':>6} | {'Rep1':>5} | {'Rep2':>5} | {'Rep3':>5} | {'Rep4':>5} | {'Rep5':>5}\n"
+        header += "-" * 120 + "\n"
         self.history_text.insert(tk.END, header)
         
     def create_analysis_panel(self, parent):
@@ -373,9 +437,13 @@ class StudentFlowSimulator:
                                         text=f"{int(self.students_per_year[i])}", 
                                         fill="white", font=("Arial", 20, "bold"))
             
+            # Detalles de repetidores y nuevos
+            repeater_text = f"🔄{int(self.repeaters_per_year[i])}"
+            new_text = f"🆕{int(self.new_students_per_year[i])}"
+            
             self.flow_canvas.create_text(x + box_width//2, y_center + 25,
-                                        text="estudiantes", fill="white", 
-                                        font=("Arial", 8))
+                                        text=f"{repeater_text} {new_text}", 
+                                        fill="white", font=("Arial", 8))
             
             # Flechas hacia el siguiente año
             if i < self.params['total_years'] - 1:
@@ -495,17 +563,100 @@ class StudentFlowSimulator:
                                          text=f"Año {years[-1]}",
                                          anchor=tk.E, font=("Arial", 9))
         
+    def update_pie_chart(self):
+        self.pie_canvas.delete("all")
+        
+        width = self.pie_canvas.winfo_width()
+        height = self.pie_canvas.winfo_height()
+        
+        if width <= 1 or self.total_enrolled == 0:
+            # Mostrar mensaje si no hay datos
+            self.pie_canvas.create_text(width//2, height//2, 
+                                       text="No hay datos\ndisponibles\n\nEjecuta la simulación\npara ver el gráfico",
+                                       fill="#64748b", font=("Arial", 12, "bold"),
+                                       justify=tk.CENTER)
+            return
+        
+        center_x, center_y = width // 2, height // 2
+        radius = min(center_x, center_y) - 40
+        
+        # Calcular porcentajes para cada año
+        percentages = []
+        total = self.total_enrolled
+        
+        for i in range(self.params['total_years']):
+            if total > 0:
+                percentage = (self.students_per_year[i] / total) * 100
+            else:
+                percentage = 0
+            percentages.append(percentage)
+        
+        # Colores para cada segmento
+        colors = ["#06b6d4", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"]
+        
+        # Dibujar el gráfico de pastel
+        start_angle = 0
+        for i, percentage in enumerate(percentages):
+            if percentage > 0:
+                extent = 360 * (percentage / 100)
+                
+                # Dibujar segmento
+                self.pie_canvas.create_arc(center_x - radius, center_y - radius,
+                                          center_x + radius, center_y + radius,
+                                          start=start_angle, extent=extent,
+                                          fill=colors[i], outline="white", width=2)
+                
+                # Calcular posición para la etiqueta
+                angle_rad = math.radians(start_angle + extent/2)
+                label_x = center_x + (radius * 0.7) * math.cos(angle_rad)
+                label_y = center_y + (radius * 0.7) * math.sin(angle_rad)
+                
+                # Etiqueta con porcentaje
+                self.pie_canvas.create_text(label_x, label_y, 
+                                           text=f"{percentage:.1f}%",
+                                           fill="white", font=("Arial", 9, "bold"))
+                
+                start_angle += extent
+        
+        # Leyenda
+        legend_x = 20
+        legend_y = height - 120
+        
+        for i in range(self.params['total_years']):
+            if percentages[i] > 0:
+                # Cuadro de color
+                self.pie_canvas.create_rectangle(legend_x, legend_y, 
+                                               legend_x + 15, legend_y + 15,
+                                               fill=colors[i], outline="#475569")
+                
+                # Texto de la leyenda
+                self.pie_canvas.create_text(legend_x + 25, legend_y + 7,
+                                           text=f"Año {i+1}: {percentages[i]:.1f}% ({int(self.students_per_year[i])} estudiantes)",
+                                           anchor=tk.W, fill="#1e293b", 
+                                           font=("Arial", 9))
+                legend_y += 20
+        
+        # Título del gráfico
+        self.pie_canvas.create_text(center_x, 30, 
+                                   text=f"Distribución Actual - Total: {int(self.total_enrolled)} estudiantes",
+                                   fill="#1e293b", font=("Arial", 11, "bold"))
+        
     def simulate_year(self):
         # Guardar estado actual en historial
         self.history['year'].append(self.year)
         for i in range(1, 6):
             self.history[f'year{i}'].append(self.students_per_year[i-1])
+            self.history[f'repeaters{i}'].append(self.repeaters_per_year[i-1])
+            self.history[f'new_students{i}'].append(self.new_students_per_year[i-1])
+            
         self.history['graduated'].append(self.total_graduated)
         self.history['dropped'].append(self.total_dropped)
         self.history['total'].append(self.total_enrolled)
         
         # Nuevo arreglo para el próximo año
         new_students = [0] * self.params['total_years']
+        new_repeaters = [0] * self.params['total_years']
+        new_new_students = [0] * self.params['total_years']
         
         # Procesar cada año de estudio
         for i in range(self.params['total_years']):
@@ -514,6 +665,7 @@ class StudentFlowSimulator:
             if i == 0:  # Primer año
                 # Nuevos ingresos
                 new_students[0] += self.params['x']
+                new_new_students[0] += self.params['x']
                 
                 # Estudiantes del año anterior
                 pass_rate = self.params['a1'] / 100
@@ -526,6 +678,7 @@ class StudentFlowSimulator:
                     self.total_graduated += current * pass_rate
                     
                 new_students[i] += current * repeat_rate
+                new_repeaters[i] += current * repeat_rate
                 self.total_dropped += current * drop_rate
                 
             else:  # Años posteriores
@@ -539,10 +692,13 @@ class StudentFlowSimulator:
                     self.total_graduated += current * pass_rate
                     
                 new_students[i] += current * repeat_rate
+                new_repeaters[i] += current * repeat_rate
                 self.total_dropped += current * drop_rate
         
         # Actualizar estudiantes
         self.students_per_year = new_students
+        self.repeaters_per_year = new_repeaters
+        self.new_students_per_year = new_new_students
         self.total_enrolled = sum(new_students)
         self.year += 1
         
@@ -550,7 +706,10 @@ class StudentFlowSimulator:
         row = f"{self.year:>4} |"
         for i in range(5):
             row += f" {int(self.students_per_year[i]):>5} |"
-        row += f" {int(self.total_graduated):>6} | {int(self.total_dropped):>7} | {int(self.total_enrolled):>6}\n"
+        row += f" {int(self.total_graduated):>6} | {int(self.total_dropped):>7} | {int(self.total_enrolled):>6} |"
+        for i in range(5):
+            row += f" {int(self.repeaters_per_year[i]):>5} |"
+        row = row.rstrip(" |") + "\n"
         self.history_text.insert(tk.END, row)
         self.history_text.see(tk.END)
         
@@ -561,6 +720,10 @@ class StudentFlowSimulator:
         for i in range(self.params['total_years']):
             if self.students_per_year[i] > self.params['x'] * 2:
                 alerts.append(f"⚠️ SOBRECAPACIDAD en {i+1}° año: {int(self.students_per_year[i])} estudiantes")
+            
+            # Alerta específica para repetidores
+            if self.repeaters_per_year[i] > self.students_per_year[i] * 0.4:
+                alerts.append(f"🔄 ALTO NÚMERO DE REPETIDORES en {i+1}° año: {int(self.repeaters_per_year[i])} ({self.repeaters_per_year[i]/self.students_per_year[i]*100:.1f}%)")
         
         # Tasa de deserción alta
         if self.year > 0 and self.total_enrolled > 0:
@@ -602,6 +765,15 @@ class StudentFlowSimulator:
         # Salas necesarias (asumiendo 30 estudiantes por sala)
         total_rooms_needed = sum([math.ceil(s / 30) for s in self.students_per_year[:self.params['total_years']]])
         recommendations.append(f"🏫 SALAS NECESARIAS: Se requieren aproximadamente {total_rooms_needed} salas simultáneas (30 estudiantes/sala).")
+        
+        # Análisis de repetidores
+        total_repeaters = sum(self.repeaters_per_year)
+        if total_repeaters > 0:
+            repeater_rate = (total_repeaters / self.total_enrolled) * 100
+            recommendations.append(f"🔄 TASA DE REPETICIÓN: {repeater_rate:.1f}% ({int(total_repeaters)} estudiantes repitiendo)")
+            
+            if repeater_rate > 20:
+                recommendations.append(f"🚨 ALTA REPETICIÓN: Implementar programas de apoyo académico y tutorías")
         
         # Análisis de deserción
         if self.total_enrolled + self.total_dropped > 0:
@@ -652,10 +824,13 @@ class StudentFlowSimulator:
         # Estadísticas por año
         for i in range(min(self.params['total_years'], len(self.year_cards))):
             self.year_cards[i].config(text=str(int(self.students_per_year[i])))
+            self.repeater_cards[i].config(text=str(int(self.repeaters_per_year[i])))
+            self.new_student_cards[i].config(text=str(int(self.new_students_per_year[i])))
         
         self.check_alerts()
         self.update_flow_diagram()
         self.update_evolution_graph()
+        self.update_pie_chart()
         self.update_analysis()
         
     def toggle_simulation(self):
@@ -700,8 +875,8 @@ class StudentFlowSimulator:
         
         # Limpiar historial
         self.history_text.delete(1.0, tk.END)
-        header = f"{'Año':>4} | {'1er':>5} | {'2do':>5} | {'3er':>5} | {'4to':>5} | {'5to':>5} | {'Grad':>6} | {'Desert':>7} | {'Total':>6}\n"
-        header += "-" * 70 + "\n"
+        header = f"{'Año':>4} | {'1er':>5} | {'2do':>5} | {'3er':>5} | {'4to':>5} | {'5to':>5} | {'Grad':>6} | {'Desert':>7} | {'Total':>6} | {'Rep1':>5} | {'Rep2':>5} | {'Rep3':>5} | {'Rep4':>5} | {'Rep5':>5}\n"
+        header += "-" * 120 + "\n"
         self.history_text.insert(tk.END, header)
         
         # Recrear cards si cambia duración
