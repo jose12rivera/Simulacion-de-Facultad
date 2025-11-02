@@ -193,7 +193,7 @@ class StudentFlowSimulator:
         dropped_frame = tk.Frame(parent, bg="#ef4444", relief=tk.FLAT, bd=0)
         dropped_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
         
-        tk.Label(dropped_frame, text="⚠️ Desertores", bg="#ef4444", fg="white", 
+        tk.Label(dropped_frame, text="⚠️ Renunciados", bg="#ef4444", fg="white", 
                 font=("Arial", 13, "bold")).pack(anchor=tk.W, padx=20, pady=(15, 5))
         
         self.dropped_value = tk.Label(dropped_frame, text="0", bg="#ef4444", fg="white", 
