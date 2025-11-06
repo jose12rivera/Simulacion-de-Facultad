@@ -397,8 +397,9 @@ class StudentFlowSimulator:
                         bg="white", fg="#1e293b", font=("Arial", 15, "bold"))
         title.pack(anchor=tk.W, padx=20, pady=(15, 10))
         
-        self.analysis_text = tk.Text(parent, height=7, wrap=tk.WORD, 
-                                    font=("Arial", 10), relief=tk.FLAT, bg="#f8fafc",
+        # Cambiar la fuente a monoespaciada para mantener el formato del aula
+        self.analysis_text = tk.Text(parent, height=12, wrap=tk.WORD, 
+                                    font=("Courier New", 9), relief=tk.FLAT, bg="#f8fafc",
                                     fg="#334155")
         self.analysis_text.pack(fill=tk.X, padx=20, pady=(0, 15))
         
@@ -743,6 +744,59 @@ class StudentFlowSimulator:
         else:
             self.alert_frame.pack_forget()
             
+    def create_classroom_design(self, total_rooms, max_students):
+        """Crea una representación ASCII art mejorada de un aula con mesas y sillas"""
+        
+        # Diseño compacto y bonito del aula
+        classroom = []
+        classroom.append("╔═════════════════════════════════════════════════╗")
+        classroom.append("║                🎓  PIZARRA  🎓                 ║")
+        classroom.append("║              ███████████████████               ║")
+        classroom.append("║              ███████████████████               ║")
+        classroom.append("╠═════════════════════════════════════════════════╣")
+        classroom.append("║                                                 ║")
+        
+        # Filas compactas de mesas (5 filas de 6 mesas = 30 estudiantes)
+        desk_design = [
+            "║    🪑┌───┐🪑     🪑┌───┐🪑     🪑┌───┐🪑     ║",
+            "║     │   │       │   │       │   │      ║",
+            "║    🪑└───┘🪑     🪑└───┘🪑     🪑└───┘🪑     ║",
+            "║                                                 ║",
+            "║    🪑┌───┐🪑     🪑┌───┐🪑     🪑┌───┐🪑     ║",
+            "║     │   │       │   │       │   │      ║",
+            "║    🪑└───┘🪑     🪑└───┘🪑     🪑└───┘🪑     ║",
+            "║                                                 ║",
+            "║    🪑┌───┐🪑     🪑┌───┐🪑     🪑┌───┐🪑     ║",
+            "║     │   │       │   │       │   │      ║",
+            "║    🪑└───┘🪑     🪑└───┘🪑     🪑└───┘🪑     ║",
+            "║                                                 ║",
+            "║    🪑┌───┐🪑     🪑┌───┐🪑     🪑┌───┐🪑     ║",
+            "║     │   │       │   │       │   │      ║",
+            "║    🪑└───┘🪑     🪑└───┘🪑     🪑└───┘🪑     ║",
+            "║                                                 ║",
+            "║    🪑┌───┐🪑     🪑┌───┐🪑     🪑┌───┐🪑     ║",
+            "║     │   │       │   │       │   │      ║",
+            "║    🪑└───┘🪑     🪑└───┘🪑     🪑└───┘🪑     ║",
+            "║                                                 ║",
+            "║              🚪─────🚪                         ║",
+            "╚═════════════════════════════════════════════════╝"
+        ]
+        
+        classroom.extend(desk_design)
+        
+        # Información de capacidad con mejor formato
+        classroom.append("")
+        classroom.append("┌─────────────────────────────────────────┐")
+        classroom.append("│           📊 ESPECIFICACIONES          │")
+        classroom.append("├─────────────────────────────────────────┤")
+        classroom.append(f"│ 🏫 Capacidad: 30 estudiantes/aula      │")
+        classroom.append(f"│ 📚 Aulas necesarias: {total_rooms:<15} │")
+        classroom.append(f"│ 👥 Máximo por aula: {int(max_students):<14} │")
+        classroom.append("│ 🪑 5 filas × 6 mesas = 30 puestos       │")
+        classroom.append("└─────────────────────────────────────────┘")
+        
+        return "\n".join(classroom)
+            
     def update_analysis(self):
         self.analysis_text.delete(1.0, tk.END)
         
@@ -763,8 +817,25 @@ class StudentFlowSimulator:
         recommendations.append(f"📊 CAPACIDAD MÁXIMA: El año con más estudiantes tiene {int(max_students)} alumnos.")
         
         # Salas necesarias (asumiendo 30 estudiantes por sala)
-        total_rooms_needed = sum([math.ceil(s / 30) for s in self.students_per_year[:self.params['total_years']]])
-        recommendations.append(f"🏫 SALAS NECESARIAS: Se requieren aproximadamente {total_rooms_needed} salas simultáneas (30 estudiantes/sala).")
+        rooms_per_year = [math.ceil(s / 30) for s in self.students_per_year[:self.params['total_years']]]
+        total_rooms_needed = sum(rooms_per_year)
+        
+        # Crear representación visual del aula
+        classroom_design = self.create_classroom_design(total_rooms_needed, max_students)
+        recommendations.append(f"🏫 SALAS NECESARIAS: Se requieren {total_rooms_needed} salas simultáneas (30 estudiantes/sala)")
+        recommendations.append("")
+        recommendations.append("📐 DISEÑO DE AULA TÍPICA:")
+        recommendations.append(classroom_design)
+        recommendations.append("")
+        
+        # Detalle de salas por año
+        recommendations.append("📋 DISTRIBUCIÓN DE SALAS POR AÑO:")
+        for i in range(self.params['total_years']):
+            students = self.students_per_year[i]
+            rooms = rooms_per_year[i]
+            recommendations.append(f"   Año {i+1}: {int(students):>4} estudiantes → {rooms:>2} sala{'s' if rooms > 1 else ''}")
+        
+        recommendations.append("")
         
         # Análisis de repetidores
         total_repeaters = sum(self.repeaters_per_year)
@@ -802,9 +873,9 @@ class StudentFlowSimulator:
                 recommendations.append(f"📈 CRECIMIENTO: La matrícula está aumentando. Planificar expansión de infraestructura.")
             elif recent_avg < old_avg * 0.9:
                 recommendations.append(f"📉 DECRECIMIENTO: La matrícula está disminuyendo. Investigar causas y tomar medidas.")
-        
+
         for rec in recommendations:
-            self.analysis_text.insert(tk.END, rec + "\n\n")
+            self.analysis_text.insert(tk.END, rec + "\n")
             
     def update_display(self):
         self.year_label.config(text=f"Año Académico: {self.year}")
@@ -852,7 +923,7 @@ class StudentFlowSimulator:
         self.is_running = False
         self.play_button.config(text="▶ Iniciar Simulación", bg="#10b981")
         
-        # Actualizar parámetros
+        # Actualizar parámetros desde entradas
         try:
             for key, entry in self.config_entries.items():
                 value = entry.get()
@@ -879,7 +950,7 @@ class StudentFlowSimulator:
         header += "-" * 120 + "\n"
         self.history_text.insert(tk.END, header)
         
-        # Recrear cards si cambia duración
+        # Recrear cards si cambia duración de carrera
         self.update_display()
         
     def toggle_config(self):
